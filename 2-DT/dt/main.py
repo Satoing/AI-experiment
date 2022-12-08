@@ -2,17 +2,47 @@ import numpy as np
 import pandas as pd
 from math import log2
 
+# 将样本中离散的数据离散化，使用中位数二分
+def discretization_train(X: pd.DataFrame, cut = 2):
+    changes = []
+    for col in X:
+        counter = X[col].value_counts()
+        # 如果值的个数小于4，那么就认为这个特征是离散的，不需要进行离散化
+        if len(counter) <= 4: continue
+        cuts = [-float('inf')]
+        for i in range(1, cut): 
+            cuts.append(round(X[col].quantile(i/cut)))
+        cuts.append(float('inf'))
+        for i in range(len(X[col])):
+            for j in range(len(cuts)):
+                if(X[col][i]<=cuts[j]):
+                    X[col].iloc[i] = f"({cuts[j-1]}, {cuts[j]})"
+                    break
+        changes.append({"col": col, "cuts": cuts})
+    return changes
+        
+def discretization_test(X: pd.DataFrame, changes: list):
+    for change in changes:
+        col = change["col"]
+        for i in range(len(X[col])):
+            for j in range(len(change["cuts"])):
+                if X[col].iloc[i] <= change["cuts"][j]:
+                    X[col].iloc[i] = f"({change['cuts'][j-1]}, {change['cuts'][j]})"
+                    break
+        
 # 决策树中结点的数据结构，使用双亲表示法
 class node(object):
     def __init__(self, X: pd.DataFrame, y: pd.Series, depth: int, ent=-1, father=None, f_value=None, name=None):
-        # @X: 划分到该节点的样本（特征）
-        # @y: 划分到该节点的标签
-        # @depth: 当前节点的深度，根节点为0
-        # @ent: 该节点的信息熵
-        # @father: 该节点的父节点，也是node
-        # @f_value: 记录父节点到该节点的取值
-        # @name: 选择特征的名字
-        # @clildren: 如果下一个节点可分的话依然是node，否则就是标签的值
+        '''
+        @X: 划分到该节点的样本（特征）
+        @y: 划分到该节点的标签
+        @depth: 当前节点的深度，根节点为0
+        @ent: 该节点的信息熵
+        @father: 该节点的父节点，也是node
+        @f_value: 记录父节点到该节点的取值
+        @name: 选择特征的名字
+        @clildren: 如果下一个节点可分的话依然是node，否则就是标签的值
+        '''
         self.X = X
         self.y = y
         self.ent = ent
@@ -34,7 +64,7 @@ class Solution(object):
         # @depth: 最大深度
         # @pre: 是否进行预剪枝
         # @dt: 存储生成的决策树，其中的元素应该是node
-        # @method: 计算样本纯度的方法，1表示ID3、2表示C4.5、3表示CART
+        # @method: 计算样本纯度的方法，1表示ID3，2表示C4.5，3表示CART
         self.X = X
         self.y = y
         self.depth = len(X.iloc[0])-1
@@ -42,7 +72,7 @@ class Solution(object):
         print("最大深度", self.depth+1)
         self.dt = []
         self.pre_y = []
-        self.method = 1
+        self.method = method
 
     # 生成决策树
     def fit(self):
@@ -59,9 +89,9 @@ class Solution(object):
             # 终止条件二：如果特征已经用完或已达到限制的深度
             if n.depth >= self.depth: continue
             # 向其中加入节点
-            nodes = Solution.try_split(n)
+            nodes = Solution.try_split(n, self.method)
             if len(nodes) == 0: continue
-            self.dt.extend(nodes)
+            if nodes is not None: self.dt.extend(nodes)
         print(self.dt)
         self.shape()
         self.draw()
@@ -97,10 +127,10 @@ class Solution(object):
     def predict(self, data: pd.DataFrame):
         count = 0
         while count < len(data):
-            # print(f"DEBUG: 测试第{count}行的用例")
+            print(f"DEBUG: 测试第{count+1}行的用例")
             type = 1
             next_value = data.iloc[count][self.dt[0].name]
-            # print(f"DEBUG: 特征{self.dt[0].name}对应的值为{next_value}")
+            print(f"DEBUG: 特征{self.dt[0].name}对应的值为{next_value}")
             next = None
             for n in self.dt[0].children:
                 if next_value == n["value"]:
@@ -108,16 +138,16 @@ class Solution(object):
             
             while type != 0:
                 next_value = data.iloc[count][next.name]
-                # print(f"DEBUG: 特征{next}对应的值为{next_value}")
+                print(f"DEBUG: 特征{next}对应的值为{next_value}")
                 for n in next.children:
                     if next_value == n['value']:
                         next = n['next'];type = n['type'];break
             self.pre_y.append(next)
-            # print(f"DEBUG: 预测值为{next}")
+            print(f"DEBUG: 预测值为{next}")
             count += 1
         print("\n预测结果: ")
         print(self.pre_y)
-            
+ 
     # 判断模型的准确率
     def accurcy(self, y: pd.Series):
         y_predict = pd.Series(self.pre_y)
@@ -141,13 +171,10 @@ class Solution(object):
             res += -p * log2(p)
         return res
     
-    # @staticmethod
-    # def entropy_ratio(y: pd.Series):
-    #     pass
-    
-    # @staticmethod
-    # def gini(y: pd.Series):
-    #     pass
+    # todo，之前写的代码耦合性太高，不好引入CART
+    @staticmethod  # 计算基尼系数
+    def gini(y: pd.Series):
+        pass
     
     @staticmethod
     def get_root(root: node):
@@ -169,7 +196,7 @@ class Solution(object):
     
     # 选择出当前结点的下一层结点
     @staticmethod
-    def try_split(n: node):
+    def try_split(n: node, m = 1):
         X_all = n.X.copy()
         print("\nDEBUG: 考虑节点", n.name)
         del X_all[n.name]
@@ -186,22 +213,30 @@ class Solution(object):
             print("DEBUG: 其信息熵为", a_ent)
             name = None  # 记录选择的特征的名字
             inc = 0  # 信息增益
+            tmp = False
             # 如果最后信息熵不是0且只剩一个特征，直接选择这个特征
             if(len(X.columns)==1):
                 nodes.append(node(X, y, n.depth+1, a_ent, n, value, X.columns[0]))
                 continue
             # 依次计算各个特征的条件熵
             for col in X: 
+                print("test")
                 ent = 0
                 # 统计这个特征中每个值出现的次数
                 group = X[col].value_counts()
-                for i in group.index:  # 计算条件熵的公式
-                    ent += (group.loc[i]/len(y)) * Solution.entropy(y[X[col] == i])
-                
-                temp = a_ent - ent  # 此时的信息增益
-                if temp > inc: inc = temp;name = col
-                print(f"DEBUG: {col}信息熵为", ent)
-            print("DEBUG: 选择特征后的信息增益为", inc)
+                for i in group.index:  
+                    # 计算条件熵的公式
+                    if m == 1 or m == 2:
+                        ent += (group.loc[i]/len(y)) * Solution.entropy(y[X[col] == i])
+                # ID3算法计算信息增益
+                if m == 1: temp = a_ent - ent  
+                # C4.5算法计算信息增益率
+                elif m == 2: temp = (a_ent - ent)/Solution.entropy(X[col])
+                if not tmp or temp > inc: inc = temp;name = col;tmp = True
+                print(f"DEBUG: {col}条件熵为", ent)
+            if m == 1: print("DEBUG: 选择特征后的信息增益为", inc)
+            elif m == 2: print("DEBUG: 选择特征后的信息增益率为", inc)
+            print("DEBUG: 选择的特征为", {name})
             nodes.append(node(X, y, n.depth+1, a_ent, n, value, name))
         return nodes
     
@@ -213,20 +248,33 @@ if __name__ == "__main__":
     # y = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1]
     # X = pd.DataFrame(X, columns=['有工作', '有房屋', '学历等级'])
     # y = pd.Series(y)
+    # s = Solution(X, y, depth=3, method=1)
+    # s.fit()
+    # s.predict(X)
+    # s.accurcy(y)
     
-    # 离散型测试用例2
-    # X = pd.read_csv('./train.txt')
-    # y = X.iloc[:, -1]
-    # print(X)
-    # X = X.drop([X.columns[-1]], axis=1)
-    
-    # 离散型测试用例3
-    X = pd.read_csv('./train.csv')
+    # 离散型测试用例
+    X = pd.read_csv('./data2/train.csv')
     y = X.iloc[:, -1]
     print(X)
     X = X.drop([X.columns[-1]], axis=1)
+    X_test = pd.read_csv('./data2/test.txt')
+    y_test = X_test.iloc[:, -1]
+    X_test = X_test.drop([X_test.columns[-1]], axis=1)
     
-    s = Solution(X, y, depth=5)
+    # 连续型测试用例
+    # X = pd.read_csv('./traindata.txt')
+    # y = X.iloc[:, -1]
+    # X = X.drop([X.columns[-1]], axis=1)
+    # X_test = pd.read_csv('./testdata.txt')
+    # y_test = X_test.iloc[:, -1]
+    # X_test = X_test.drop([X_test.columns[-1]], axis=1)
+    # changed = discretization_train(X, cut=3)
+    # print(X)
+    # discretization_test(X_test, changed)
+    # print(X_test)
+    
+    s = Solution(X, y, depth=3, method=1)
     s.fit()
-    s.predict(X)
-    s.accurcy(y)
+    s.predict(X_test)
+    s.accurcy(y_test)
