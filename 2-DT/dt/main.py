@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from math import log2
 
-# 将样本中离散的数据离散化，使用中位数二分
+# 将样本中离散的数据离散化，使用分位数
 def discretization_train(X: pd.DataFrame, cut = 2):
     changes = []
     for col in X:
@@ -33,16 +33,14 @@ def discretization_test(X: pd.DataFrame, changes: list):
 # 决策树中结点的数据结构，使用双亲表示法
 class node(object):
     def __init__(self, X: pd.DataFrame, y: pd.Series, depth: int, ent=-1, father=None, f_value=None, name=None):
-        '''
-        @X: 划分到该节点的样本（特征）
-        @y: 划分到该节点的标签
-        @depth: 当前节点的深度，根节点为0
-        @ent: 该节点的信息熵
-        @father: 该节点的父节点，也是node
-        @f_value: 记录父节点到该节点的取值
-        @name: 选择特征的名字
-        @clildren: 如果下一个节点可分的话依然是node，否则就是标签的值
-        '''
+        # @X: 划分到该节点的样本（特征）
+        # @y: 划分到该节点的标签
+        # @depth: 当前节点的深度，根节点为0
+        # @ent: 该节点的信息熵
+        # @father: 该节点的父节点，也是node
+        # @f_value: 记录父节点到该节点的取值
+        # @name: 选择特征的名字
+        # @clildren: 如果下一个节点可分的话依然是node，否则就是标签的值
         self.X = X
         self.y = y
         self.ent = ent
@@ -94,7 +92,6 @@ class Solution(object):
             if nodes is not None: self.dt.extend(nodes)
         print(self.dt)
         self.shape()
-        self.draw()
     
     # 遍历dt，补充子节点，便于后面的遍历 
     def shape(self):
@@ -127,10 +124,10 @@ class Solution(object):
     def predict(self, data: pd.DataFrame):
         count = 0
         while count < len(data):
-            print(f"DEBUG: 测试第{count+1}行的用例")
+            # print(f"DEBUG: 测试第{count+1}行的用例")
             type = 1
             next_value = data.iloc[count][self.dt[0].name]
-            print(f"DEBUG: 特征{self.dt[0].name}对应的值为{next_value}")
+            # print(f"DEBUG: 特征{self.dt[0].name}对应的值为{next_value}")
             next = None
             for n in self.dt[0].children:
                 if next_value == n["value"]:
@@ -138,12 +135,12 @@ class Solution(object):
             
             while type != 0:
                 next_value = data.iloc[count][next.name]
-                print(f"DEBUG: 特征{next}对应的值为{next_value}")
+                # print(f"DEBUG: 特征{next}对应的值为{next_value}")
                 for n in next.children:
                     if next_value == n['value']:
                         next = n['next'];type = n['type'];break
             self.pre_y.append(next)
-            print(f"DEBUG: 预测值为{next}")
+            # print(f"DEBUG: 预测值为{next}")
             count += 1
         print("\n预测结果: ")
         print(self.pre_y)
@@ -276,5 +273,6 @@ if __name__ == "__main__":
     
     s = Solution(X, y, depth=3, method=1)
     s.fit()
+    s.draw()
     s.predict(X_test)
     s.accurcy(y_test)

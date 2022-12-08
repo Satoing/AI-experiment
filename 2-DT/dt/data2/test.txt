@@ -1,4 +1,4 @@
-outlook,temp,humidity,windy,play
+outlook,temperature,humidity,windy,play
 rainy,hot,high,false,no
 rainy,hot,high,true,no
 overcast,hot,high,false,yes
