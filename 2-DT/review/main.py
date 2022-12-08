@@ -1,10 +1,9 @@
-import numpy as np
 import pandas as pd
-from math import log10
-
-nums = [0]
-for num in nums:
-    print("num =",num)
-    a = input("输入数字(空格间隔):")
-    if a != '0': nums.extend(a.split(' '))
-    print(nums)
+idx =  "hello the cruel world".split()
+val = [1000, 201, 333, 104]
+t = pd.Series(val, index = idx)
+print (t.quantile())
+print(t.median())
+print (round(t.quantile(0.5), 2))
+print (t.quantile(0.3))
+print (t.quantile(0.75))
