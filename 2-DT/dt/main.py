@@ -254,25 +254,25 @@ if __name__ == "__main__":
     # s.accurcy(y)
     
     # 离散型测试用例
-    X = pd.read_csv('./data2/train.csv')
-    y = X.iloc[:, -1]
-    print(X)
-    X = X.drop([X.columns[-1]], axis=1)
-    X_test = pd.read_csv('./data2/test.txt')
-    y_test = X_test.iloc[:, -1]
-    X_test = X_test.drop([X_test.columns[-1]], axis=1)
-    
-    # 连续型测试用例
-    # X = pd.read_csv('./traindata.txt')
+    # X = pd.read_csv('./data2/train.csv')
     # y = X.iloc[:, -1]
+    # print(X)
     # X = X.drop([X.columns[-1]], axis=1)
-    # X_test = pd.read_csv('./testdata.txt')
+    # X_test = pd.read_csv('./data2/test.txt')
     # y_test = X_test.iloc[:, -1]
     # X_test = X_test.drop([X_test.columns[-1]], axis=1)
-    # changed = discretization_train(X, cut=3)
-    # print(X)
-    # discretization_test(X_test, changed)
-    # print(X_test)
+    
+    # 连续型测试用例
+    X = pd.read_csv('./data1/traindata.txt')
+    y = X.iloc[:, -1]
+    X = X.drop([X.columns[-1]], axis=1)
+    X_test = pd.read_csv('./data1/testdata.txt')
+    y_test = X_test.iloc[:, -1]
+    X_test = X_test.drop([X_test.columns[-1]], axis=1)
+    changed = discretization_train(X, cut=3)
+    print(X)
+    discretization_test(X_test, changed)
+    print(X_test)
     
     s = Solution(X, y, depth=3, method=1)
     s.fit()
