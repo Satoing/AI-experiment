@@ -107,16 +107,34 @@ def fit(self):
 第2层 windy 的子节点:  [{'type': 0, 'value': False, 'next': 'yes'}, {'type': 0, 'value': True, 'next': 'no'}]
 第2层 windy 的子节点:  [{'type': 0, 'value': True, 'next': 'no'}, {'type': 0, 'value': False, 'next': 'yes'}]
 ```
-最后在草稿本上可以化出这样一棵树的结构：
+
+在草稿本上画出这棵树：
 ![](./img/test.jpg)
+
+如果选择C4.5算法，那么树的结构为：
+```
+第0层 humidity 的子节点:  [{'type': 1, 'value': 'normal', 'next': windy}, {'type': 1, 'value': 'high', 'next': outlook}]       
+第1层 windy 的子节点:  [{'type': 0, 'value': False, 'next': 'yes'}, {'type': 1, 'value': True, 'next': outlook}]
+第1层 outlook 的子节点:  [{'type': 0, 'value': 'rainy', 'next': 'no'}, {'type': 0, 'value': 'overcast', 'next': 'yes'}, {'type': 1, 'value': 'sunny', 'next': temperature}]
+第2层 outlook 的子节点:  [{'type': 0, 'value': 'rainy', 'next': 'yes'}, {'type': 0, 'value': 'sunny', 'next': 'no'}, {'type': 0, 'value': 'overcast', 'next': 'yes'}]
+第2层 temperature 的子节点:  [{'type': 0, 'value': 'mild', 'next': 'no'}]
+```
+
+![](img/test2.jpg)
+
+据此可以比较ID3和C4.5的区别：ID3更趋向于选择取值比较多的特征。
 
 接下来是使用决策时进行预测的`predict`方法。它要做的就是对于测试集中的每一行数据，按照决策树进行 查对应特征的值->移动到下一个节点->查特征的值->移动到下个节点->...，一直到`type == 0`，即获得结果为止。
 
-比如使用上面的决策树进行预测，输出为：
+比如使用上面的ID3决策树进行预测，输出为：
 ```
-预测结果:
 ['no', 'no', 'yes', 'yes', 'yes', 'no', 'yes', 'no', 'yes', 'yes', 'yes', 'yes', 'yes', 'no', 'no', 'no', 'yes', 'yes', 'yes', 'no', 'yes']
 准确率为:100.0%
+```
+C4.5决策树预测的结果为：
+```
+['no', 'no', 'yes', 'no', 'yes', 'no', 'yes', 'no', 'yes', 'yes', 'yes', 'yes', 'yes', 'no', 'no', 'no', 'yes', 'no', 'yes', 'no', 'yes']
+准确率为:90.48%
 ```
 
 ## 连续数据离散化
