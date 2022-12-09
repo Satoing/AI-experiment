@@ -15,9 +15,10 @@ def priority(values):
 
 # todo:应该打印从起点到终点，所以使用栈
 def output(father, end, start):
+    print("最终路径：")
     loc = end
     stack = [end]
-    while(loc != start):
+    while loc != start:
         loc = father[loc[0]][loc[1]]
         stack.append(loc)
     stack.reverse()
@@ -35,7 +36,7 @@ def AStar(graph, start: tuple, end: tuple):
         index = priority(openSet[1])
         current = openSet[0][index]
         openSet[0].pop(index);openSet[1].pop(index);
-        print("DEBUG: 当前坐标", current, "\n-------------")
+        print("\nDEBUG: 当前坐标", current, "\n-------------")
         if current != end:  # 还没有搜索到终点
             closeSet.append(current)
             for dir in dirs:
@@ -60,12 +61,17 @@ def AStar(graph, start: tuple, end: tuple):
                         if openSet[1][index] > fn:  # 更新
                             openSet[1][index] = fn
                             father[test[0]][test[1]] = current
-            print("DEBUG: openSet", openSet)
+                print("DEBUG: openSet", openSet)
         else: flag = True;break  # 搜索到了终点
         input()  # 便于单步调试
     if flag: output(father, end, start)  # 输出这条路径
     else: print("找不到路径")
 
 if __name__ == "__main__":
-    graph = [[1, 1, 0, 1], [1, 1, 0, 1], [1, 1, 0, 1],[1, 1, 1, 1]]
-    AStar(graph, (0, 0), (0, 3))
+    # graph = [[1, 1, 0, 1], [1, 1, 0, 1], [1, 1, 0, 1],[1, 1, 1, 1]]
+    # AStar(graph, (0, 0), (0, 3))
+    
+    # 实验四的用例
+    graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]]
+    AStar(graph, (3, 0), (3, 11))
