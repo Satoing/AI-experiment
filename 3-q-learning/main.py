@@ -23,7 +23,7 @@ class QlearningConfig:
         self.epsilon_start = 0.95 #e-greedy策略中初始epsilon
         self.epsilon_end = 0.01 #e-greedy策略中的终止epsilon
         self.epsilon_decay = 300 #e-greedy策略中epsilon的衰减率
-        self.lr = 0.5 #学习率
+        self.lr = 0.8 #学习率
         self.render_frqc = 30 # 仿真渲染频率
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")  # check gpu
@@ -47,25 +47,28 @@ def train(cfg, env, agent):
     for i_ep in range(cfg.train_eps):
         ep_reward = 0  # 记录每个episode的reward
         state = env.reset()  # 重置环境, 重新开一局（即开始新的一个episode）
+        # action = agent.choose_action(state)  # 根据算法选择一个动作
         while True:
             action = agent.choose_action(state)  # 根据算法选择一个动作
             next_state, reward, done, _ = env.step(action)  # 与环境进行一次动作交互
+            next_action = agent.choose_action(next_state)  # SARSA需要a_{t+1}
             if i_ep % cfg.render_frqc == 0 and i_ep != 0:
                 env.render() # 渲染动作并显示
-            agent.update(state, action, reward, next_state,
-                         done)  # Q-learning算法更新
+            # Q-learning算法更新
+            agent.Q_update(state, action, reward, next_state, done)  
+            # SARSA算法更新
+            # agent.S_update(state, action, reward, next_state, next_action, done)
             state = next_state  # 存储上一个观察值
             ep_reward += reward
-            if done:
-                break
+            # action = next_action  # SARSA需要修改动作
+            if done: break
         rewards.append(ep_reward)
         if running_rewards:
             running_rewards.append(running_rewards[-1] * 0.9 + ep_reward * 0.1)
         else:
             running_rewards.append(ep_reward)
         
-        print("Episode:{}/{}: reward:{:.1f}".format(i_ep + 1, cfg.train_eps,
-                                                    ep_reward))
+        print("Episode:{}/{}: reward:{:.1f}".format(i_ep + 1, cfg.train_eps, ep_reward))
     print('Complete training！')
     return rewards, running_rewards
 
