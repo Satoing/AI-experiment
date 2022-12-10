@@ -51,7 +51,7 @@ def train(cfg, env, agent):
         while True:
             action = agent.choose_action(state)  # 根据算法选择一个动作
             next_state, reward, done, _ = env.step(action)  # 与环境进行一次动作交互
-            next_action = agent.choose_action(next_state)  # SARSA需要a_{t+1}
+            # next_action = agent.choose_action(next_state)  # SARSA需要a_{t+1}
             if i_ep % cfg.render_frqc == 0 and i_ep != 0:
                 env.render() # 渲染动作并显示
             # Q-learning算法更新

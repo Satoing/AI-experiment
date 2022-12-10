@@ -34,7 +34,7 @@ class Solution(object):
             if (gi ^ ti) == 1: 
                 if abs(self.graph.index(0)%3-self.target.index(0)%3)%2 == 0:
                     return True
-            else:  # 奇偶性相同，那么0所在行的差值k必须是奇数时，才能互达
+            else:  # 奇偶性不同，那么0所在行的差值k必须是奇数时，才能互达
                 if abs(self.graph.index(0)%3-self.target.index(0)%3)%2 == 1:
                     return True
         return False
