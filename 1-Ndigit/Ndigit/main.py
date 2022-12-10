@@ -131,8 +131,8 @@ class Solution(object):
         for i in range(d**2):
             if g[i] == 0: continue
             j = t.index(g[i])
-            row = abs(i//3 - j//3)  # 行的差值
-            col = abs(i%3 - j%3)  # 列的差值
+            row = abs(i//d - j//d)  # 行的差值
+            col = abs(i%d - j%d)  # 列的差值
             res += (row+col)
         return res
     
@@ -142,8 +142,8 @@ class Solution(object):
         for i in range(d**2):
             if g[i] == 0: continue
             j = t.index(g[i])
-            row = i//3 - j//3  # 行的差值
-            col = i%3 - j%3  # 列的差值
+            row = i//d - j//d  # 行的差值
+            col = i%d - j%d  # 列的差值
             res += math.sqrt(row**2 + col**2)
         return res
     
@@ -175,14 +175,18 @@ if __name__ == "__main__":
     # s = Solution(3, g, t, m = 1)
     
     # 8数码用例2
-    g = [1, 0, 4, 2, 7, 6, 3, 8, 5]
-    t = [1, 2, 3, 4, 5, 6, 7, 8, 0]
-    s = Solution(3, g, t, m = 2)
+    # g = [1, 0, 2, 3, 4, 5, 6, 7, 8]
+    # t = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+    # s = Solution(3, g, t, m = 2)
     
     # 15数码用例1
     # g = [5, 1, 2, 4, 9, 6, 3, 8, 13, 15, 10, 11, 14, 0, 7, 12]
     # t = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
     # s = Solution(4, g, t, m = 1)
+    
+    g = [1, 2, 7, 3, 9, 5, 6, 4, 10, 11, 8, 0, 13, 14, 15, 12]
+    t = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
+    s = Solution(4, g, t, m = 1)
     
     # 15数码用例2，要跑很久
     # g = [11, 9, 4, 15, 1, 3, 0, 12, 7, 5, 8, 6, 13, 2, 10, 14]

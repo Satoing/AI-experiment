@@ -29,8 +29,21 @@
 - 学习阶段探索环境，完成Q表格。
 - 预测阶段根据已完成的Q表格，选择路径。
 
+学习阶段可以选择使用的算法有Qlearning和SARSA。
+
+Qlearning的做法是向update函数中传入 $s_t$ 、 $a_t$ 、 $r_t$ 、 $s_{t+1}$ ，选择 $s_{t+1}$ 状态下最大的Q值来更新当前Q值。
+
+SARSA的做法是向update函数中传入 $s_t$ 、 $a_t$ 、 $r_t$ 、 $s_{t+1}$ 和 $a_{t+1}$ ，然后更新当前Q值。
+
+## 两种方法的区别
+
+Qlearning只使用贪心策略用 $s_t$ 预测 $a_t$ ，然后与环境交互得到 $r_t$ 和 $s_{t+1}$ ，最后向更新函数传入sars。
+
+SARSA先使用贪心策略用 $s_t$ 预测 $a_t$ ，然后与环境交互得到 $r_t$ 和 $s_{t+1}$ ，再根据 $s_{t+1}$ 使用贪心策略预测 $a_{t+1}$ ，最后向更新函数传入sarsa。
+
 ## 实验结果
 
+使用Qlearning：
 ```bash
 python main.py
 ...
@@ -40,3 +53,12 @@ Episode:29/30, reward:-13.0
 Episode:30/30, reward:-13.0
 ```
 最后的奖励为-13，即移动了13步到达终点，也就是之前A*寻到的最短路径。
+
+使用SARSA:
+```bash
+Episode:27/30, reward:-17.0
+Episode:28/30, reward:-17.0
+Episode:29/30, reward:-17.0
+Episode:30/30, reward:-17.0
+```
+最后的奖励为-17，并不是最短路径。
